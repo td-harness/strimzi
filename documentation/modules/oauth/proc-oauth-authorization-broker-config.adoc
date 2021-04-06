@@ -1,0 +1,93 @@
+// Module included in the following module:
+//
+// con-oauth-config.adoc
+
+[id='proc-oauth-authorization-broker-config-{context}']
+= Configuring OAuth 2.0 authorization support
+
+This procedure describes how to configure Kafka brokers to use OAuth 2.0 authorization using Keycloak Authorization Services.
+
+.Before you begin
+Consider the access you require or want to limit for certain users.
+You can use a combination of Keycloak _groups_, _roles_, _clients_, and _users_ to configure access in Keycloak.
+
+Typically, groups are used to match users based on organizational departments or geographical locations.
+And roles are used to match users based on their function.
+
+With Keycloak, you can store users and groups in LDAP, whereas clients and roles cannot be stored this way.
+Storage and access to user data may be a factor in how you choose to configure authorization policies.
+
+NOTE: xref:property-simple-authorization-superusers-reference[Super users] always have unconstrained access to a Kafka broker regardless of the authorization implemented on the Kafka broker.
+
+.Prerequisites
+
+* Strimzi must be configured to use OAuth 2.0 with Keycloak for xref:assembly-oauth-authentication_str[token-based authentication].
+You use the same Keycloak server endpoint when you set up authorization.
+* OAuth 2.0 authentication must be configured with the `maxSecondsWithoutReauthentication` option to enable re-authentication.
+
+.Procedure
+
+. Access the Keycloak Admin Console or use the Keycloak Admin CLI to enable Authorization Services for the Kafka broker client you created when setting up OAuth 2.0 authentication.
+. Use Authorization Services to define resources, authorization scopes, policies, and permissions for the client.
+. Bind the permissions to users and clients by assigning them roles and groups.
+. Configure the Kafka brokers to use Keycloak authorization by updating the Kafka broker configuration (`Kafka.spec.kafka`) of your `Kafka` resource in an editor.
++
+[source,shell]
+----
+kubectl edit kafka my-cluster
+----
+
+. Configure the Kafka broker `kafka` configuration to use `keycloak` authorization, and to be able to access the authorization server and Authorization Services.
++
+For example:
++
+[source,yaml,subs="+quotes,attributes"]
+----
+apiVersion: {KafkaApiVersion}
+kind: Kafka
+metadata:
+  name: my-cluster
+spec:
+  kafka:
+    # ...
+    authorization:
+      type: *keycloak* <1>
+      tokenEndpointUri: <__https://<auth-server-address>/auth/realms/external/protocol/openid-connect/token__> <2>
+      clientId: kafka <3>
+      delegateToKafkaAcls: false <4>
+      disableTlsHostnameVerification: false <5>
+      superUsers: <6>
+      - CN=fred
+      - sam
+      - CN=edward
+      tlsTrustedCertificates: <7>
+      - secretName: oauth-server-cert
+        certificate: ca.crt
+      grantsRefreshPeriodSeconds: 60 <8>
+      grantsRefreshPoolSize: 5 <9>
+    #...
+----
+<1> Type `keycloak` enables Keycloak authorization.
+<2> URI of the Keycloak token endpoint. For production, always use HTTPs.
+<3> The client ID of the OAuth 2.0 client definition in Keycloak that has Authorization Services enabled. Typically, `kafka` is used as the ID.
+<4> (Optional) Delegate authorization to Kafka `AclAuthorizer` if access is denied by Keycloak Authorization Services policies.
+Default is `false`.
+<5> (Optional) Disable TLS hostname verification. Default is `false`.
+<6> (Optional) Designated xref:property-simple-authorization-superusers-reference[super users].
+<7> (Optional) Trusted certificates for TLS connection to the authorization server.
+<8> (Optional) The time between two consecutive grants refresh runs. That is the maximum time for active sessions to detect any permissions changes for the user on Keycloak. The default value is 60.
+<9> (Optional) The number of threads to use to refresh (in parallel) the grants for the active sessions. The default value is 5.
+
+. Save and exit the editor, then wait for rolling updates to complete.
+
+. Check the update in the logs or by watching the pod state transitions:
++
+[source,shell,subs="+quotes,attributes"]
+----
+kubectl logs -f ${POD_NAME} -c kafka
+kubectl get pod -w
+----
++
+The rolling update configures the brokers to use OAuth 2.0 authorization.
+
+. Verify the configured permissions by accessing Kafka brokers as clients or  users with specific roles, making sure they have the necessary access, or do not have the access they are not supposed to have.

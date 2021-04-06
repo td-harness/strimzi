@@ -1,0 +1,17 @@
+// Module included in the following assemblies:
+//
+// assembly-overview.adoc
+
+[id='document-conventions-{context}']
+= Document Conventions
+
+.Replaceables
+
+In this document, replaceable text is styled in `monospace`, with italics, uppercase, and hyphens.
+
+For example, in the following code, you will want to replace `_MY-NAMESPACE_` with the name of your namespace:
+
+[source, subs="+quotes"]
+----
+sed -i 's/namespace: .\*/namespace: _MY-NAMESPACE_/' install/cluster-operator/*RoleBinding*.yaml
+----

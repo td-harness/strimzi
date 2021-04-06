@@ -1,0 +1,132 @@
+// This module is included in:
+//
+// overview/assembly-configuration-points.adoc
+
+[id="configuration-points-connect_{context}"]
+= Kafka Connect configuration
+
+A basic Kafka Connect configuration requires a bootstrap address to connect to a Kafka cluster, and encryption and authentication details.
+
+Kafka Connect instances are configured by default with the same:
+
+* Group ID for the Kafka Connect cluster
+* Kafka topic to store the connector offsets
+* Kafka topic to store connector and task status configurations
+* Kafka topic to store connector and task status updates
+
+If multiple different Kafka Connect instances are used, these settings must reflect each instance.
+
+[discrete]
+== Example YAML showing Kafka Connect configuration
+[source,yaml,subs="attributes+"]
+----
+apiVersion: {KafkaConnectApiVersion}
+kind: KafkaConnect
+metadata:
+  name: my-connect
+spec:
+  # ...
+  config:
+    group.id: my-connect-cluster
+    offset.storage.topic: my-connect-cluster-offsets
+    config.storage.topic: my-connect-cluster-configs
+    status.storage.topic: my-connect-cluster-status
+  # ...
+----
+
+[discrete]
+== Connectors
+
+Connectors are configured separately from Kafka Connect.
+The configuration describes the source input data and target output data to feed into and out of Kafka Connect.
+The external source data must reference specific topics that will store the messages.
+
+Kafka provides two built-in connectors:
+
+--
+* `FileStreamSourceConnector` streams data from an external system to Kafka, reading lines from an input source and sending each line to a Kafka topic.
+* `FileStreamSinkConnector` streams data from Kafka to an external system, reading messages from a Kafka topic and creating a line for each in an output file.
+--
+
+You can add other connectors using connector plugins, which are a set of JAR files or TGZ archives that define the implementation required to connect to certain types of external system.
+
+You create a custom Kafka Connect image that uses new connector plugins.
+
+To create the image, you can use:
+
+* Kafka Connect configuration so that Strimzi creates the new image automatically.
+* A Kafka container image on {DockerRepository} as a base image.
+* OpenShift {docs-okd} and the {docs-okd-s2i} framework to create new container images.
+
+For Strimzi to create the new image automatically, a `build` configuration requires `output` properties to reference a container registry that stores the container image,
+and `plugins` properties to list the connector plugins and their artifacts to add to the image.
+
+The `output` properties describe the type and name of the image, and optionally the name of the Secret containing the credentials needed to access the container registry.
+The `plugins` properties describe the type of artifact and the URL from which the artifact is downloaded. Additionally, you can specify a SHA-512 checksum to verify the artifact before unpacking it.
+
+.Example Kafka Connect configuration to create a new image automatically
+[source,yaml,subs="+quotes,attributes"]
+----
+apiVersion: {KafkaConnectApiVersion}
+kind: KafkaConnect
+metadata:
+  name: my-connect-cluster
+spec:
+  # ...
+  build:
+    output:
+      type: docker
+      image: my-registry.io/my-org/my-connect-cluster:latest
+      pushSecret: my-registry-credentials
+    plugins:
+      - name: debezium-postgres-connector
+        artifacts:
+          - type: tgz
+            url: https://_ARTIFACT-ADDRESS_.tgz
+            sha512sum: _HASH-NUMBER-TO-VERIFY-ARTIFACT_
+      # ...
+  #...
+----
+
+[discrete]
+== Managing connectors
+
+You can use the KafkaConnector resource or the link:https://kafka.apache.org/documentation/#connect_rest[Kafka Connect REST API] to create and manage connector instances in a Kafka Connect cluster.
+The KafkaConnector resource offers a Kubernetes-native approach, and is managed by the Cluster Operator.
+
+The `spec` for the KafkaConnector resource specifies the connector class and configuration settings, as well as the maximum number of connector _tasks_ to handle the data.
+
+[discrete]
+== Example YAML showing KafkaConnector configuration
+[source,yaml,subs="attributes+"]
+----
+apiVersion: {KafkaConnectorApiVersion}
+kind: KafkaConnector
+metadata:
+  name: my-source-connector
+  labels:
+    strimzi.io/cluster: my-connect-cluster
+spec:
+  class: org.apache.kafka.connect.file.FileStreamSourceConnector
+  tasksMax: 2
+  config:
+    file: "/opt/kafka/LICENSE"
+    topic: my-topic
+    # ...
+----
+
+You enable KafkaConnectors by adding an annotation to the `KafkaConnect` resource.
+KafkaConnector resources must be deployed to the same namespace as the Kafka Connect cluster they link to.
+
+[discrete]
+== Example YAML showing annotation to enable KafkaConnector
+[source,yaml,subs="attributes+"]
+----
+apiVersion: {KafkaConnectApiVersion}
+kind: KafkaConnect
+metadata:
+  name: my-connect
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+  # ...
+----

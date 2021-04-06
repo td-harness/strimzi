@@ -1,0 +1,152 @@
+---
+apiVersion: "kafka.strimzi.io/v1beta2"
+kind: "Kafka"
+metadata:
+  name: "strimzi-ephemeral"
+spec:
+  kafka:
+    replicas: 3
+    image: "strimzi/kafka:latest"
+    listeners:
+      plain:
+        networkPolicyPeers:
+        - namespaceSelector:
+            matchLabels:
+              kafka-enabled: "true"
+          podSelector:
+            matchLabels:
+              app: "kafka-consumer"
+        - podSelector:
+            matchLabels:
+              app: "kafka-producer"
+        authentication:
+          type: "scram-sha-512"
+      tls:
+        networkPolicyPeers:
+        - namespaceSelector:
+            matchLabels:
+              kafka-enabled: "true"
+          podSelector:
+            matchLabels:
+              app: "kafka-consumer"
+        - podSelector:
+            matchLabels:
+              app: "kafka-producer"
+        authentication:
+          type: "tls"
+      external:
+        type: "route"
+        authentication:
+          type: "tls"
+        overrides:
+          bootstrap:
+            address: "my-bootstrap-host"
+            host: "my-bootstrap-host"
+          brokers:
+          - broker: 0
+            advertisedHost: "my-broker-0"
+            advertisedPort: 10000
+            host: "my-broker-0"
+          - broker: 1
+            advertisedHost: "my-broker-1"
+            advertisedPort: 10001
+            host: "my-broker-1"
+          - broker: 2
+            advertisedHost: "my-broker-2"
+            advertisedPort: 10002
+            host: "my-broker-2"
+        networkPolicyPeers:
+        - namespaceSelector:
+            matchLabels:
+              kafka-enabled: "true"
+          podSelector:
+            matchLabels:
+              app: "kafka-consumer"
+        - podSelector:
+            matchLabels:
+              app: "kafka-producer"
+    config:
+      min.insync.replicas: 3
+    storage:
+      type: "persistent-claim"
+      size: "500Gi"
+    authorization:
+      type: "simple"
+      superUsers:
+      - "CN=jakub"
+      - "CN=paolo"
+      - "CN=tom"
+      - "CN=stanislav"
+      - "CN=kyle"
+      - "CN=sergey"
+      - "CN=andryi"
+    brokerRackInitImage: "strimzi/kafka-init:latest"
+    tolerations:
+    - effect: "NoSchedule"
+      key: "key1"
+      operator: "Equal"
+      value: "value1"
+    - effect: "NoSchedule"
+      key: "key2"
+      operator: "Equal"
+      value: "value2"
+    livenessProbe:
+      initialDelaySeconds: 5
+      timeoutSeconds: 1
+    readinessProbe:
+      initialDelaySeconds: 10
+      timeoutSeconds: 4
+    jvmOptions:
+      "-Xmx": "4G"
+      "-Xms": "2G"
+      "-XX":
+        foo: "bar"
+    resources:
+      limits:
+        memory: "5Gi"
+    metricsConfig:
+      type: "jmxPrometheusExporter"
+      valueFrom:
+        configMapKeyRef:
+          key: "my-key"
+          name: "my-config-map"
+  zookeeper:
+    replicas: 3
+    image: "strimzi/zookeeper:latest"
+    storage:
+      type: "ephemeral"
+    tolerations:
+    - effect: "NoSchedule"
+      key: "key1"
+      operator: "Equal"
+      value: "value1"
+    - effect: "NoSchedule"
+      key: "key2"
+      operator: "Equal"
+      value: "value2"
+    livenessProbe:
+      initialDelaySeconds: 5
+      timeoutSeconds: 1
+    readinessProbe:
+      initialDelaySeconds: 10
+      timeoutSeconds: 4
+    jvmOptions:
+      "-Xmx": "512Mi"
+      "-Xms": "512Mi"
+    resources:
+      limits:
+        memory: "512Mi"
+  topicOperator:
+    watchedNamespace: "my-ns"
+    reconciliationIntervalSeconds: 120
+    zookeeperSessionTimeoutSeconds: 18
+    topicMetadataMaxAttempts: 6
+  clusterCa:
+    generateCertificateAuthority: false
+    validityDays: 395
+    renewalDays: 32
+  clientsCa:
+    generateCertificateAuthority: false
+    validityDays: 400
+    renewalDays: 20
+  someExtraThing: true

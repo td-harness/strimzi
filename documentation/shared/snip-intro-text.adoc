@@ -1,0 +1,2 @@
+//standard product intro text
+Strimzi simplifies the process of running Apache Kafka in a Kubernetes cluster.

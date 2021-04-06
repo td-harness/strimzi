@@ -1,0 +1,44 @@
+// This assembly is included in the following assemblies:
+//
+// assembly-upgrade.adoc
+
+[id='assembly-upgrading-kafka-versions-{context}']
+
+= Upgrading Kafka
+
+After you have upgraded your Cluster Operator to {ProductVersion}, the next step is to upgrade all Kafka brokers to the latest supported version of Kafka.
+
+Kafka upgrades are performed by the Cluster Operator through rolling updates of the Kafka brokers. 
+
+The Cluster Operator initiates rolling updates based on the Kafka cluster configuration.
+
+[cols="2*",options="header",stripes="none",separator=¦]
+|===
+
+¦If `Kafka.spec.kafka.config` contains...
+¦The Cluster Operator initiates...
+
+¦Both the `inter.broker.protocol.version` and the `log.message.format.version`.
+¦A single rolling update.
+
+¦Either the `inter.broker.protocol.version` or the `log.message.format.version`.
+¦Two rolling updates.
+
+¦No configuration for the `inter.broker.protocol.version` or the `log.message.format.version`.
+¦Two rolling updates.
+
+|===
+
+As part of the Kafka upgrade, the Cluster Operator initiates rolling updates for ZooKeeper.
+
+* A single rolling update occurs even if the ZooKeeper version is unchanged.
+* Additional rolling updates occur if the new version of Kafka requires a new ZooKeeper version.
+
+.Additional resources
+
+* xref:assembly-upgrade-cluster-operator-str[]
+* xref:ref-kafka-versions-{context}[]
+
+include::modules/con-upgrade-versions-and-images.adoc[leveloffset=+1]
+
+include::modules/proc-upgrade-brokers-newer-kafka.adoc[leveloffset=+1]

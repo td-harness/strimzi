@@ -1,0 +1,123 @@
+// Module included in the following assemblies:
+//
+// assembly-config-mirrormaker2.adoc
+
+[id='con-mirrormaker-{context}']
+= MirrorMaker 2.0 data replication
+
+MirrorMaker 2.0 consumes messages from a source Kafka cluster and writes them to a target Kafka cluster.
+
+MirrorMaker 2.0 uses:
+
+* Source cluster configuration to consume data from the source cluster
+* Target cluster configuration to output data to the target cluster
+
+MirrorMaker 2.0 is based on the Kafka Connect framework, _connectors_ managing the transfer of data between clusters.
+A MirrorMaker 2.0 `MirrorSourceConnector` replicates topics from a source cluster to a target cluster.
+
+The process of _mirroring_ data from one cluster to another cluster is asynchronous.
+The recommended pattern is for messages to be produced locally alongside the source Kafka cluster, then consumed remotely close to the target Kafka cluster.
+
+MirrorMaker 2.0 can be used with more than one source cluster.
+
+.Replication across two clusters
+image::mirrormaker.png[MirrorMaker 2.0 replication]
+
+By default, a check for new topics in the source cluster is made every 10 minutes.
+You can change the frequency by adding `refresh.topics.interval.seconds` to the source connector configuration.
+However, increasing the frequency of the operation might affect overall performance.
+
+= Cluster configuration
+
+You can use MirrorMaker 2.0 in _active/passive_ or _active/active_ cluster configurations.
+
+* In an _active/active_ configuration, both clusters are active and provide the same data simultaneously, which is useful if you want to make the same data available locally in different geographical locations.
+* In an _active/passive_ configuration, the data from an active cluster is replicated in a passive cluster, which remains on standby, for example, for data recovery in the event of system failure.
+
+The expectation is that producers and consumers connect to active clusters only.
+
+A MirrorMaker 2.0 cluster is required at each target destination.
+
+== Bidirectional replication (active/active)
+
+The MirrorMaker 2.0 architecture supports bidirectional replication in an _active/active_ cluster configuration.
+
+Each cluster replicates the data of the other cluster using the concept of _source_ and _remote_ topics.
+As the same topics are stored in each cluster, remote topics are automatically renamed by MirrorMaker 2.0 to represent the source cluster.
+The name of the originating cluster is prepended to the name of the topic.
+
+.Topic renaming
+image::mirrormaker-renaming.png[MirrorMaker 2.0 bidirectional architecture]
+
+By flagging the originating cluster, topics are not replicated back to that cluster.
+
+The concept of replication through _remote_ topics is useful when configuring an architecture that requires data aggregation.
+Consumers can subscribe to source and remote topics within the same cluster, without the need for a separate aggregation cluster.
+
+== Unidirectional replication (active/passive)
+
+The MirrorMaker 2.0 architecture supports unidirectional replication in an _active/passive_ cluster configuration.
+
+You can use an _active/passive_ cluster configuration to make backups or migrate data to another cluster.
+In this situation, you might not want automatic renaming of remote topics.
+
+You can override automatic renaming by adding `IdentityReplicationPolicy` to the source connector configuration.
+With this configuration applied, topics retain their original names.
+
+== Topic configuration synchronization
+
+Topic configuration is automatically synchronized between source and target clusters.
+By synchronizing configuration properties, the need for rebalancing is reduced.
+
+== Data integrity
+
+MirrorMaker 2.0 monitors source topics and propagates any configuration changes to remote topics, checking for and creating missing partitions.
+Only MirrorMaker 2.0 can write to remote topics.
+
+== Offset tracking
+MirrorMaker 2.0 tracks offsets for consumer groups using _internal topics_.
+
+* The _offset sync_ topic maps the source and target offsets for replicated topic partitions from record metadata
+* The _checkpoint_ topic maps the last committed offset in the source and target cluster for replicated topic partitions in each consumer group
+
+Offsets for the _checkpoint_ topic are tracked at predetermined intervals through configuration.
+Both topics enable replication to be fully restored from the correct offset position on failover.
+
+MirrorMaker 2.0 uses its `MirrorCheckpointConnector` to emit _checkpoints_ for offset tracking.
+
+== Synchronizing consumer group offsets
+
+The `__consumer_offsets` topic stores information on committed offsets, for each consumer group.
+Offset synchronization periodically transfers the consumer offsets for the consumer groups of a source cluster into the consumer offsets topic of a target cluster.
+
+Offset synchronization is particularly useful in an _active/passive_ configuration.
+If the active cluster goes down, consumer applications can switch to the passive (standby) cluster and pick up from the last transferred offset position.
+
+To use topic offset synchronization:
+
+* Enable the synchronization by adding `sync.group.offsets.enabled` to the checkpoint connector configuration,
+and setting the property to `true`. Synchronization is disabled by default.
+* Add the `IdentityReplicationPolicy` to the source and checkpoint connector configuration so that topics in the target cluster retain their original names.
+
+For topic offset synchronization to work, consumer groups in the target cluster cannot use the same ids as groups in the source cluster.
+
+If enabled, the synchronization of offsets from the source cluster is made periodically.
+You can change the frequency by adding `sync.group.offsets.interval.seconds` and `emit.checkpoints.interval.seconds` to the checkpoint connector configuration.
+The properties specify the frequency in seconds that the consumer group offsets are synchronized, and the frequency of checkpoints emitted for offset tracking.
+The default for both properties is 60 seconds.
+You can also change the frequency of checks for new consumer groups using the `refresh.groups.interval.seconds` property, which is performed every 10 minutes by default.
+
+Because the synchronization is time-based, any switchover by consumers to a passive cluster will likely result in some duplication of messages.
+
+== Connectivity checks
+
+A _heartbeat_ internal topic checks connectivity between clusters.
+
+The _heartbeat_ topic is replicated from the source cluster.
+
+Target clusters use the topic to check:
+
+* The connector managing connectivity between clusters is running
+* The source cluster is available
+
+MirrorMaker 2.0 uses its `MirrorHeartbeatConnector` to emit _heartbeats_ that perform these checks.

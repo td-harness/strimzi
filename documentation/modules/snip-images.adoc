@@ -1,0 +1,48 @@
+// Auto generated content - DO NOT EDIT BY HAND
+// Edit documentation/snip-images.sh instead
+[table,stripes=none]
+|===
+|Container image |Namespace/Repository |Description
+
+|Kafka
+a|
+* {DockerOrg}/kafka:{DockerTag}-kafka-2.6.0
+* {DockerOrg}/kafka:{DockerTag}-kafka-2.6.1
+* {DockerOrg}/kafka:{DockerTag}-kafka-2.7.0
+
+a|
+Strimzi image for running Kafka, including:
+
+* Kafka Broker
+* Kafka Connect / S2I
+* Kafka MirrorMaker
+* ZooKeeper
+* TLS Sidecars
+
+|Operator
+a|
+* {DockerOrg}/operator:{DockerTag}
+
+a|
+Strimzi image for running the operators:
+
+* Cluster Operator
+* Topic Operator
+* User Operator
+* Kafka Initializer
+
+|Kafka Bridge
+a|
+* {DockerOrg}/kafka-bridge:{BridgeDockerTag}
+
+a|
+Strimzi image for running the Strimzi kafka Bridge
+
+|JmxTrans
+a|
+* {DockerOrg}/jmxtrans:{DockerTag}
+
+a|
+Strimzi image for running the Strimzi JmxTrans
+
+|===

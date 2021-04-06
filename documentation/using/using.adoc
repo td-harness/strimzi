@@ -1,0 +1,36 @@
+include::shared/version-dependent-attrs.adoc[]
+include::shared/attributes.adoc[]
+
+:context: str
+
+= Using Strimzi
+
+include::assemblies/assembly-overview.adoc[leveloffset=+1]
+
+include::assemblies/configuring/assembly-deployment-configuration.adoc[leveloffset=+1]
+
+include::assemblies/assembly-securing-external-listeners.adoc[leveloffset=+1]
+
+include::assemblies/assembly-securing-access.adoc[leveloffset=+1]
+
+include::assemblies/operators/assembly-operators.adoc[leveloffset=+1]
+
+include::assemblies/assembly-kafka-bridge-concepts.adoc[leveloffset=+1]
+
+include::assemblies/cruise-control/assembly-cruise-control-concepts.adoc[leveloffset=+1]
+
+include::assemblies/tracing/assembly-distributed-tracing.adoc[leveloffset=+1]
+
+include::assemblies/security/assembly-security.adoc[leveloffset=+1]
+
+include::assemblies/managing/assembly-management-tasks.adoc[leveloffset=+1]
+
+[id='api_reference-{context}']
+:parent-context: {context}
+:context: reference
+
+== Custom resource API reference
+include::modules/con-common-configuration-properties.adoc[leveloffset=+1]
+=== Schema properties
+include::modules/appendix_crds.adoc[leveloffset=+1]
+:context: {parent-context}

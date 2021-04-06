@@ -1,0 +1,179 @@
+[id='type-ExampleCrd-{context}']
+# `Example` schema reference
+
+
+[options="header"]
+|====
+|Property                       |Description
+|affinity                1.2+<.<| For more information, see the {KubeApiReferenceBase}#affinity-v1-core[external documentation for core/v1 affinity].
+
+
+|{KubeApiReferenceBase}#affinity-v1-core[Affinity]
+|alternatives            1.2+<.<|
+|string array or map
+|arrayOfBoundTypeVar     1.2+<.<|
+|xref:type-Number-{context}[`Number`] array
+|arrayOfBoundTypeVar2    1.2+<.<|
+|xref:type-Number-{context}[`Number`] array
+|arrayOfList             1.2+<.<|
+|string array of dimension 2
+|arrayOfRawList          1.2+<.<|
+|object array of dimension 2
+|arrayOfTypeVar          1.2+<.<|
+|object array
+|arrayProperty           1.2+<.<|
+|string array
+|arrayProperty2          1.2+<.<|
+|string array of dimension 2
+|booleanProperty         1.2+<.<|
+|boolean
+|customisedEnum          1.2+<.<|
+|string (one of [one, two])
+|fieldProperty           1.2+<.<|Example of field property.
+|string
+|intProperty             1.2+<.<|An example int property.
+|integer
+|listOfArray             1.2+<.<|
+|string array of dimension 2
+|listOfBoundTypeVar      1.2+<.<|
+|xref:type-Number-{context}[`Number`] array
+|listOfBoundTypeVar2     1.2+<.<|
+|xref:type-Number-{context}[`Number`] array
+|listOfInts              1.2+<.<|
+|integer array
+|listOfInts2             1.2+<.<|
+|integer array of dimension 2
+|listOfMaps              1.2+<.<|
+|map array
+|listOfObjects           1.2+<.<|
+|xref:type-ObjectProperty-{context}[`ObjectProperty`] array
+|listOfPolymorphic       1.2+<.<|
+|xref:type-PolymorphicLeft-{context}[`PolymorphicLeft`], xref:type-PolymorphicRight-{context}[`PolymorphicRight`] array
+|listOfRawList           1.2+<.<|
+|object array of dimension 2
+|listOfTypeVar           1.2+<.<|
+|object array
+|listOfWildcardTypeVar1  1.2+<.<|
+|string array
+|listOfWildcardTypeVar2  1.2+<.<|
+|xref:type-Number-{context}[`Number`] array
+|listOfWildcardTypeVar3  1.2+<.<|
+|xref:type-Number-{context}[`Number`] array
+|listOfWildcardTypeVar4  1.2+<.<|
+|xref:type-Number-{context}[`Number`] array of dimension 2
+|longProperty            1.2+<.<|An example long property.
+|integer
+|mapProperty             1.2+<.<|
+|map
+|normalEnum              1.2+<.<|
+|string (one of [BAR, FOO])
+|objectProperty          1.2+<.<|
+|xref:type-ObjectProperty-{context}[`ObjectProperty`]
+|polymorphicProperty     1.2+<.<| The type depends on the value of the `polymorphicProperty.discrim` property within the given object, which must be one of [left, right].
+|xref:type-PolymorphicLeft-{context}[`PolymorphicLeft`], xref:type-PolymorphicRight-{context}[`PolymorphicRight`]
+|rawList                 1.2+<.<|
+|object array
+|spec                    1.2+<.<|
+|object
+|status                  1.2+<.<|
+|object
+|stringProperty          1.2+<.<|
+|string
+|typedAlternatives       1.2+<.<|
+|xref:type-Type2-{context}[`Type2`] or xref:type-Type1-{context}[`Type1`]
+|====
+
+[id='type-Number-{context}']
+# `Number` schema reference
+
+Used in: xref:type-ExampleCrd-{context}[`ExampleCrd`]
+
+
+[options="header"]
+|====
+|Property|Description
+|====
+
+[id='type-ObjectProperty-{context}']
+# `ObjectProperty` schema reference
+
+Used in: xref:type-ExampleCrd-{context}[`ExampleCrd`]
+
+Example of complex type.
+
+[options="header"]
+|====
+|Property    |Description
+|bar  1.2+<.<|
+|string
+|foo  1.2+<.<|
+|string
+|====
+
+[id='type-PolymorphicLeft-{context}']
+# `PolymorphicLeft` schema reference
+
+Used in: xref:type-ExampleCrd-{context}[`ExampleCrd`]
+
+
+The `discrim` property is a discriminator that distinguishes use of the `PolymorphicLeft` type from xref:type-PolymorphicRight-{context}[`PolymorphicRight`].
+It must have the value `left` for the type `PolymorphicLeft`.
+[options="header"]
+|====
+|Property               |Description
+|commonProperty  1.2+<.<|
+|string
+|discrim         1.2+<.<|
+|string
+|leftProperty    1.2+<.<|when descrim=left, the left-hand property.
+|string
+|====
+
+[id='type-PolymorphicRight-{context}']
+# `PolymorphicRight` schema reference
+
+Used in: xref:type-ExampleCrd-{context}[`ExampleCrd`]
+
+
+The `discrim` property is a discriminator that distinguishes use of the `PolymorphicRight` type from xref:type-PolymorphicLeft-{context}[`PolymorphicLeft`].
+It must have the value `right` for the type `PolymorphicRight`.
+[options="header"]
+|====
+|Property               |Description
+|commonProperty  1.2+<.<|
+|string
+|discrim         1.2+<.<|
+|string
+|rightProperty   1.2+<.<|when descrim=right, the right-hand property.
+|string
+|====
+
+[id='type-Type2-{context}']
+# `Type2` schema reference
+
+Used in: xref:type-ExampleCrd-{context}[`ExampleCrd`]
+
+
+[options="header"]
+|====
+|Property     |Description
+|key2  1.2+<.<|
+|string
+|====
+
+[id='type-Type1-{context}']
+# `Type1` schema reference
+
+*The type `Type1` has been deprecated.*
+Please use xref:type-Type2-{context}[`Type2`] instead.
+
+Used in: xref:type-ExampleCrd-{context}[`ExampleCrd`]
+
+
+[options="header"]
+|====
+|Property     |Description
+|key1  1.2+<.<|
+|string
+|====
+

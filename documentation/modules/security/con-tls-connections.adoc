@@ -1,0 +1,30 @@
+// Module included in the following assemblies:
+//
+// assembly-security.adoc
+
+[id='tls-connections-{context}']
+= TLS connections
+
+== ZooKeeper communication
+
+Communication between the ZooKeeper nodes on all ports as well as between clients and ZooKeeper is encrypted.
+
+== Kafka interbroker communication
+
+Communication between Kafka brokers is done through an internal listener on port 9091, which is encrypted by default and not accessible to Kafka clients.
+
+Communication between Kafka brokers and ZooKeeper nodes is also encrypted.
+
+== Topic and User Operators
+
+All Operators use encryption for communication with both Kafka and ZooKeeper.
+In Topic and User Operators, a TLS sidecar is used when communicating with ZooKeeper.
+
+== Cruise Control
+
+Cruise Control uses encryption for communication with both Kafka and ZooKeeper.
+A TLS sidecar is used when communicating with ZooKeeper.
+
+== Kafka Client connections
+
+Encrypted or unencrypted communication between Kafka brokers and clients is configured using the `tls` property for `spec.kafka.listeners`.
